@@ -1,5 +1,5 @@
 # 可拖动看版demo
-# 使用插件https://www.itxst.com/vue-draggable-next/tutorial.html
+# 使用拖动插件vuedraggable,参考文档：https://www.itxst.com/vue-draggable-next/tutorial.html
 
 
 ## Project Setup
