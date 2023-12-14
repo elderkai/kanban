@@ -14,7 +14,7 @@ const barnerImagesData1 = [{
 {
     url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71e4.webp',
     transform: [1, 0, 0, 1, -240, -5],
-    width: 457.5,
+    width: 457.5,list5-todo2
     deg: -Math.PI / 60000,
     a: 0.035,
 }, {

@@ -11,7 +11,7 @@
         <div class="todo_top">
           <div class="title">{{ item.title }}</div>
         </div>
-        <draggable class="dragArea list-group" :list="item.children" :clone="clone" ghost-class="ghost"
+        <draggable class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true" :list="item.children" :clone="clone" ghost-class="ghost"
           chosen-class="chosenClass" animation="300" :group="{ name: 'dragArea', pull: pullFunction }" @start="start"
           item-key="id">
           <template #item="{ element }">
@@ -35,13 +35,13 @@ function init() {
 
   for (let i = 0; i < 20; i++) {
     let obj: any = {
-      title: `list${i}`,
+      title: `list${i+1}`,
       children: []
     }
     let key = 0;
     for (let j = 0; j < 10; j++) {
       obj.children.push({
-        title: `list${i}-todo${j}`,
+        title: `list${i+1}-todo${j+1}`,
         key
       })
       key++;
@@ -198,13 +198,16 @@ function pullFunction() {
   }
 }
 
-.chosenClass {
-  background-color: #eee;
+list2-todo0.chosenClass {
+  background-color: #fff;
   opacity: 1;
-  border: solid 1px red;
 }
 
 .ghost {
-  border: solid 1px rgb(19, 41, 239) !important;
+  background: #fff;
+}
+.dragClass{
+  background:#fff!important;
+  opacity: 1!important;
 }
 </style>
