@@ -1,4 +1,5 @@
 # 可拖动看版demo
+# 使用插件https://www.itxst.com/vue-draggable-next/tutorial.html
 
 
 ## Project Setup

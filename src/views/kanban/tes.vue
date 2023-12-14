@@ -55,7 +55,7 @@ export default {
       drag: false
     };
   },
-  methods: {
+  methods: { 
     sort() {
       this.list = this.list.sort((a, b) => a.order - b.order);
     }

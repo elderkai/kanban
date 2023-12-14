@@ -7,22 +7,17 @@
       </div>
     </div>
     <div class="box_cover">
-      <div class="list_todo" v-for="(item,key) in myTodos" :key="key">
+      <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
         <div class="todo_top">
           <div class="title">{{ item.title }}</div>
         </div>
-        <draggable
-        class="dragArea list-group"
-        :list="item.children"
-        :clone="clone"
-        :group="{ name: 'people', pull: pullFunction }"
-        @start="start"
-        item-key="id"
-      >
-      <template #item="{ element }">
-        <div class="todo_item" >
-        {{ element.title }}</div>
-        </template>
+        <draggable class="dragArea list-group" :list="item.children" :clone="clone" ghost-class="ghost"
+          chosen-class="chosenClass" animation="300" :group="{ name: 'dragArea', pull: pullFunction }" @start="start"
+          item-key="id">
+          <template #item="{ element }">
+            <div class="todo_item">
+              {{ element.title }}</div>
+          </template>
         </draggable>
       </div>
     </div>
@@ -34,19 +29,19 @@ import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
 import { ref } from "vue";
 let searchText = ref('');
-let myTodos:any = ref([]);
-function init(){
+let myTodos: any = ref([]);
+function init() {
   console.log(draggable);
-  
+
   for (let i = 0; i < 20; i++) {
-    let obj:any = {
-      title:`list${i}`,
-      children:[]
+    let obj: any = {
+      title: `list${i}`,
+      children: []
     }
     let key = 0;
-    for (let j = 0; j < 101; j++) {
+    for (let j = 0; j < 10; j++) {
       obj.children.push({
-        title:`list${i}-todo${j}`,
+        title: `list${i}-todo${j}`,
         key
       })
       key++;
@@ -55,17 +50,17 @@ function init(){
   }
 }
 init()
-function clone(val:any){
+function clone(val: any) {
   console.log(val);
   return val
-  
+
 
 }
-function start(val:any) {
+function start(val: any) {
   console.log(val);
-  return  val
-    }
-function pullFunction(){
+  return val
+}
+function pullFunction() {
   return true;
 }
 
@@ -112,7 +107,8 @@ function pullFunction(){
   border-radius: 50px;
   box-shadow: 11px 9px 11px #0003
 }
-.box_cover{
+
+.box_cover {
   display: flex;
   justify-content: start;
   padding-left: 20px;
@@ -120,61 +116,65 @@ function pullFunction(){
   overflow-y: hidden;
   width: 100%;
   height: calc(100vh - 70px);
+
   &::-webkit-scrollbar {
     width: 10px;
   }
 
- &::-webkit-scrollbar-track {
+  &::-webkit-scrollbar-track {
     background: #0c3540;
     border-radius: 20px;
-}
+  }
 
- &::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     background: #6ac1cd;
     border-radius: 10px;
   }
 
- &::-webkit-scrollbar-thumb:hover {
+  &::-webkit-scrollbar-thumb:hover {
     background: #6ac1cd;
     border-radius: 20px;
   }
 
- &::-webkit-scrollbar-thumb:active {
+  &::-webkit-scrollbar-thumb:active {
     background: #6ac1cd;
     border-radius: 20px;
   }
-  .list_todo{
+
+  .list_todo {
     margin-top: 20px;
     padding: 0 20px;
     overflow-y: auto;
     height: 100%;
     min-width: 220px;
     position: relative;
-   &::-webkit-scrollbar {
-    width: 10px;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #0c3540;
+      border-radius: 20px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #6ac1cd;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #6ac1cd;
+      border-radius: 20px;
+    }
+
+    &::-webkit-scrollbar-thumb:active {
+      background: #6ac1cd;
+      border-radius: 20px;
+    }
   }
 
- &::-webkit-scrollbar-track {
-    background: #0c3540;
-    border-radius: 20px;
-}
-
- &::-webkit-scrollbar-thumb {
-    background: #6ac1cd;
-    border-radius: 10px;
-  }
-
- &::-webkit-scrollbar-thumb:hover {
-    background: #6ac1cd;
-    border-radius: 20px;
-  }
-
- &::-webkit-scrollbar-thumb:active {
-    background: #6ac1cd;
-    border-radius: 20px;
-  }
-  }
-  .todo_top{
+  .todo_top {
     background: #52bfd1;
     padding: 10px;
     border-radius: 50px;
@@ -183,7 +183,8 @@ function pullFunction(){
     box-sizing: border-box;
     box-shadow: 11px 9px 11px rgba(69, 67, 67, 0.2);
   }
-  .todo_item{
+
+  .todo_item {
     background: #fff4ec;
     padding: 20px;
     border-radius: 15px;
@@ -193,7 +194,17 @@ function pullFunction(){
     width: 100%;
     box-sizing: border-box;
     box-shadow: 11px 9px 11px rgba(69, 67, 67, 0.2);
-
+    cursor: all-scroll;
   }
+}
+
+.chosenClass {
+  background-color: #eee;
+  opacity: 1;
+  border: solid 1px red;
+}
+
+.ghost {
+  border: solid 1px rgb(19, 41, 239) !important;
 }
 </style>
