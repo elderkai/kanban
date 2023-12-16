@@ -12,15 +12,15 @@
           <div class="title">{{ item.title }}</div>
         </div>
         <draggable v-if="item.children" class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true" :list="item.children"
-          :clone="clone" ghost-class="ghost" chosen-class="chosenClass" animation="300"
-          :group="{ name: 'dragArea', pull: pullFunction }" @start="start" @end="onEnd" item-key="id">
+          :clone="clone" ghost-class="ghost" chosen-class="chosenClass" animation="300"  :handle="`.mover`" 
+          :group="{ name: 'dragArea', pull: pullFunction }" @start="start" @end="onEnd" :move="onMove" item-key="id">
           <template #item="{ element }">
-            <div v-if="element.type=='add'" class="todo_item">
-              <div class="add_text">
+            <div v-if="element.type=='add'" class="todo_item" >
+              <div class="add_text" @click.stop="addTodo(item)">
                 +添加卡片
               </div>
               </div>
-            <div class="todo_item" v-else-if="element.type=='todo'">
+            <div :class="`todo_item ${element.move?'mover':''}`" v-else-if="element.type=='todo'">
               {{ element.title }}</div>
           </template>
         </draggable>
@@ -62,12 +62,14 @@ function init() {
     for (let index = 0; index < 10; index++) {
       it.children.push({
         title: `${it.title}--${index + 1}`,
-        type:'todo'
+        type:'todo',
+        move:true
       })
     }
     it.children.push({
         title: ``,
-        type:'add'
+        type:'add',
+        move:false
       })
   });
   myTodos.value.push({title:"+添加列表"})
@@ -81,6 +83,17 @@ function clone(val: any) {
 
 
 }
+function onMove(val: any) {
+  console.log(val,111);
+  if(val.draggedContext.element.type=='add'){
+    console.log(2122);
+    
+    return false
+  }
+  return val
+
+
+}
 function start(val: any) {
   console.log(val);
   
@@ -90,15 +103,21 @@ function start(val: any) {
 }
 function onEnd(val: any) {
   isMove.value = false;
-  console.log(myTodos);
+  console.log(val);
   return val
 }
 function pullFunction(val:any) {
-console.log(val);
-
+console.log(val,2222);
+// if(val.type=='add'){
+//   return false
+// }
   return true;
 }
-
+function addTodo(val:any){
+  console.log(val);
+  val.children.splice(val.children.length-1,0,{title:'',type:"todo"})
+  
+}
 </script>
 
 <style lang="less" scoped>
