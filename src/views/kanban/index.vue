@@ -11,11 +11,16 @@
         <div class="todo_top">
           <div class="title">{{ item.title }}</div>
         </div>
-        <draggable class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true" :list="item.children" :clone="clone" ghost-class="ghost"
-          chosen-class="chosenClass" animation="300" :group="{ name: 'dragArea', pull: pullFunction }" @start="start"
-          item-key="id">
+        <draggable v-if="item.children" class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true" :list="item.children"
+          :clone="clone" ghost-class="ghost" chosen-class="chosenClass" animation="300"
+          :group="{ name: 'dragArea', pull: pullFunction }" @start="start" @end="onEnd" item-key="id">
           <template #item="{ element }">
-            <div class="todo_item">
+            <div v-if="element.type=='add'" class="todo_item">
+              <div class="add_text">
+                +添加卡片
+              </div>
+              </div>
+            <div class="todo_item" v-else-if="element.type=='todo'">
               {{ element.title }}</div>
           </template>
         </draggable>
@@ -29,25 +34,45 @@ import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
 import { ref } from "vue";
 let searchText = ref('');
-let myTodos: any = ref([]);
+let myTodos: any = ref([
+  {
+    title: '需求分析与方案设计',
+    children: [],
+  },
+  {
+    title: '开发中',
+    children: [],
+  },
+  {
+    title: '测试中',
+    children: [],
+  },
+  {
+    title: '发布中',
+    children: [],
+  },
+  {
+    title: '已完成',
+    children: [],
+  },
+]);
+let isMove = ref(false);
 function init() {
-  console.log(draggable);
-
-  for (let i = 0; i < 20; i++) {
-    let obj: any = {
-      title: `list${i+1}`,
-      children: []
-    }
-    let key = 0;
-    for (let j = 0; j < 10; j++) {
-      obj.children.push({
-        title: `list${i+1}-todo${j+1}`,
-        key
+  myTodos.value.forEach((it: any) => {
+    for (let index = 0; index < 10; index++) {
+      it.children.push({
+        title: `${it.title}--${index + 1}`,
+        type:'todo'
       })
-      key++;
     }
-    myTodos.value.push(obj)
-  }
+    it.children.push({
+        title: ``,
+        type:'add'
+      })
+  });
+  myTodos.value.push({title:"+添加列表"})
+  console.log(myTodos.value);
+
 }
 init()
 function clone(val: any) {
@@ -58,9 +83,19 @@ function clone(val: any) {
 }
 function start(val: any) {
   console.log(val);
+  
+  isMove.value = true;
+
   return val
 }
-function pullFunction() {
+function onEnd(val: any) {
+  isMove.value = false;
+  console.log(myTodos);
+  return val
+}
+function pullFunction(val:any) {
+console.log(val);
+
   return true;
 }
 
@@ -144,33 +179,37 @@ function pullFunction() {
   .list_todo {
     margin-top: 20px;
     padding: 0 20px;
-    overflow-y: auto;
     height: 100%;
     min-width: 220px;
     position: relative;
-
-    &::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: #0c3540;
-      border-radius: 20px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #6ac1cd;
-      border-radius: 10px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: #6ac1cd;
-      border-radius: 20px;
-    }
-
-    &::-webkit-scrollbar-thumb:active {
-      background: #6ac1cd;
-      border-radius: 20px;
+    height: 100%;
+    .list-group{
+      height: calc(100vh - 150px);
+      max-height: calc(100vh - 150px);
+      overflow-y: auto;
+      &::-webkit-scrollbar {
+        width: 10px;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background: #0c3540;
+        border-radius: 20px;
+      }
+  
+      &::-webkit-scrollbar-thumb {
+        background: #6ac1cd;
+        border-radius: 10px;
+      }
+  
+      &::-webkit-scrollbar-thumb:hover {
+        background: #6ac1cd;
+        border-radius: 20px;
+      }
+  
+      &::-webkit-scrollbar-thumb:active {
+        background: #6ac1cd;
+        border-radius: 20px;
+      }
     }
   }
 
@@ -185,8 +224,9 @@ function pullFunction() {
   }
 
   .todo_item {
+    position: relative;
     background: #fff4ec;
-    padding: 20px;
+    padding: 10px;
     border-radius: 15px;
     margin-bottom: 10px;
     width: max-content;
@@ -195,19 +235,44 @@ function pullFunction() {
     box-sizing: border-box;
     box-shadow: 11px 9px 11px rgba(69, 67, 67, 0.2);
     cursor: all-scroll;
+    min-height: 32px;
   }
 }
 
-list2-todo0.chosenClass {
+.chosenClass {
   background-color: #fff;
-  opacity: 1;
+}
+
+.ghost {
+  opacity: 0;
 }
 
 .ghost {
   background: #fff;
 }
-.dragClass{
-  background:#fff!important;
-  opacity: 1!important;
+
+.dragClass {
+  background: #fff !important;
+  opacity: 1 !important;
+}
+.todo_btn_add{
+  background: #FFF;
+  border-radius: 15px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+}
+.add_text{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+  left: 0;
+  top: 0;
 }
 </style>
