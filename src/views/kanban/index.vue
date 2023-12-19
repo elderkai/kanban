@@ -92,6 +92,9 @@ function clone(val: any) {
 
 }
 function onMove(val: any) {
+  if(!val.relatedContext.list[val.draggedContext.futureIndex]){
+    return false
+  }
   if(val.relatedContext.list[val.draggedContext.futureIndex].type=='add'){
     return false;
   }
