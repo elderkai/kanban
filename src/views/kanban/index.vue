@@ -8,7 +8,10 @@
     </div>
     <div class="box_cover">
       <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
-        <div class="todo_top">
+        <div class="todo_top add_btn_top" v-if="item.type" @click="addList">
+          <div class="title">{{ item.title }}</div>
+        </div>
+        <div class="todo_top" v-else>
           <div class="title">{{ item.title }}</div>
         </div>
         <draggable v-if="item.children" class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true" :list="item.children"
@@ -58,21 +61,26 @@ let myTodos: any = ref([
 ]);
 let isMove = ref(false);
 function init() {
+  let key = 1;
   myTodos.value.forEach((it: any) => {
     for (let index = 0; index < 10; index++) {
       it.children.push({
         title: `${it.title}--${index + 1}`,
         type:'todo',
-        move:true
+        move:true,
+        key
       })
+      key++
     }
     it.children.push({
         title: ``,
         type:'add',
-        move:false
+        move:false,
+        key
       })
+      key++
   });
-  myTodos.value.push({title:"+添加列表"})
+  myTodos.value.push({title:"+添加列表",type:'add'})
   console.log(myTodos.value);
 
 }
@@ -84,23 +92,20 @@ function clone(val: any) {
 
 }
 function onMove(val: any) {
-  console.log('onmove',val,val.draggedContext.futureIndex,val.to.children.length);
-  if(val.draggedContext.futureIndex>=val.to.children.length-2){
-    return false
+  if(val.relatedContext.list[val.draggedContext.futureIndex].type=='add'){
+    return false;
   }
-  
   if(val.draggedContext.element.type=='add'){
-    
     return false
   }
+  console.log(111);
+  
   return val
 
 
 }
 function start(val: any) {
   console.log('start',val);
-
-  
   isMove.value = true;
 
   return val
@@ -120,10 +125,10 @@ function pullFunction(val:any) {
   return true;
 }
 function addTodo(val:any){
-  console.log('addTodo',val);
-
   val.children.splice(val.children.length-1,0,{title:'',type:"todo"})
-  
+}
+function addList(){
+alert('请稍后')
 }
 </script>
 
@@ -301,5 +306,13 @@ function addTodo(val:any){
   cursor: pointer;
   left: 0;
   top: 0;
+}
+
+
+.box_cover .add_btn_top{
+  background: transparent;
+  box-shadow:none;
+  cursor: pointer;
+  color:#ddd;
 }
 </style>
