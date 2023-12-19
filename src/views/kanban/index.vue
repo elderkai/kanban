@@ -84,9 +84,12 @@ function clone(val: any) {
 
 }
 function onMove(val: any) {
-  console.log(val,111);
+  console.log('onmove',val,val.draggedContext.futureIndex,val.to.children.length);
+  if(val.draggedContext.futureIndex>=val.to.children.length-2){
+    return false
+  }
+  
   if(val.draggedContext.element.type=='add'){
-    console.log(2122);
     
     return false
   }
@@ -95,7 +98,8 @@ function onMove(val: any) {
 
 }
 function start(val: any) {
-  console.log(val);
+  console.log('start',val);
+
   
   isMove.value = true;
 
@@ -103,18 +107,21 @@ function start(val: any) {
 }
 function onEnd(val: any) {
   isMove.value = false;
-  console.log(val);
+  console.log('onEnd',val);
+
   return val
 }
 function pullFunction(val:any) {
-console.log(val,2222);
+  console.log('pullFunc',val);
+
 // if(val.type=='add'){
 //   return false
 // }
   return true;
 }
 function addTodo(val:any){
-  console.log(val);
+  console.log('addTodo',val);
+
   val.children.splice(val.children.length-1,0,{title:'',type:"todo"})
   
 }
@@ -273,6 +280,7 @@ function addTodo(val:any){
 .dragClass {
   background: #fff !important;
   opacity: 1 !important;
+  transform:rotate(2deg)
 }
 .todo_btn_add{
   background: #FFF;
