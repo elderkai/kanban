@@ -2,7 +2,7 @@
   <div class="baseKanban">
     <div class="hedader">
       <div class="cover">
-        <el-input v-model="searchText" :prefix-icon="Search" class="searchInput" placeholder="搜索相关内容">
+        <el-input v-model="searchText" :prefix-icon="Search" class="searchInput" placeholder="搜索相关内容" @change="filterText">
         </el-input>
       </div>
     </div>
@@ -60,6 +60,10 @@ let myTodos: any = ref([
   },
 ]);
 let isMove = ref(false);
+function filterText(val:any){
+  console.log(val);
+  
+}
 function init() {
   let key = 1;
   myTodos.value.forEach((it: any) => {
@@ -128,7 +132,7 @@ function pullFunction(val:any) {
   return true;
 }
 function addTodo(val:any){
-  val.children.splice(val.children.length-1,0,{title:'',type:"todo"})
+  val.children.splice(val.children.length-1,0,{title:'',type:"todo",   move:true,})
 }
 function addList(){
 alert('请稍后')
