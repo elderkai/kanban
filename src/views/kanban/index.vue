@@ -10,12 +10,12 @@
     <div class="box_cover">
       <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
         <div class="todo_top add_btn_top" v-if="item.type" @click="addList">
-          <div class="title">{{ item.title}}
-        </div>
+          <div class="title">{{ item.title }}
+          </div>
         </div>
         <div class="todo_top" v-else>
           <div class="title">{{ item.title }}（<span v-if="item.children">
-            {{  item.children.length+1 }}）
+              {{ item.children.length + 1 }}）
             </span></div>
         </div>
         <draggable v-if="item.children" class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true"
@@ -25,13 +25,15 @@
           <template #item="{ element }">
             <div v-if="element.type == 'add'" class="todo_item">
               <div v-show="element.showInput">
-                <el-input class="no_border" v-model="element.inputText" ref="kbInput" placeholder="输入卡片名称" @blur="blurInput" resize="none" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea"> </el-input>
+                <el-input class="no_border" v-model="element.inputText" ref="kbInput" placeholder="输入卡片名称"
+                  @blur="blurInput" resize="none" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea"> </el-input>
               </div>
-              <div v-if="!element.showInput" class="add_text" @click.stop="addTodo(key,element)">
+              <div v-if="!element.showInput" class="add_text" @click.stop="addTodo(key, element)">
                 +添加卡片
               </div>
             </div>
-            <div :class="`todo_item ${element.move ? 'mover' : ''}`" @click="editKb(key,element)" v-else-if="element.type == 'todo'" v-show="searchText==''||element.title.indexOf(searchText)>-1">
+            <div :class="`todo_item ${element.move ? 'mover' : ''}`" @click="editKb(key, element)"
+              v-else-if="element.type == 'todo'" v-show="searchText == '' || element.title.indexOf(searchText) > -1">
               {{ element.title }}</div>
           </template>
         </draggable>
@@ -46,8 +48,9 @@ import mDialog from './m-dialog.vue';
 import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
 import { ref } from "vue";
-let fourKey:any = 0;
-let kbInput = ref(),dialogVue = ref();
+import { resolveTripleslashReference } from 'typescript';
+let fourKey: any = 0;
+let kbInput = ref(), dialogVue = ref();
 let searchText = ref('');
 let myTodos: any = ref([
   {
@@ -93,7 +96,7 @@ function init() {
       type: 'add',
       move: false,
       showInput: false,
-      inputText:'',
+      inputText: '',
       key
     })
     key++
@@ -103,18 +106,18 @@ function init() {
 
 }
 init()
-function blurInput(val:any){
+function blurInput(val: any) {
   console.log(val);
-  let list =  myTodos.value[fourKey].children
+  let list = myTodos.value[fourKey].children
 
-  if(list[list.length-1].inputText){
+  if (list[list.length - 1].inputText) {
     console.log(111);
-    list.splice(list.length - 1, 0, { title: list[list.length-1].inputText, type: "todo", move: true, })
-    list[list.length-1].inputText = ''
-    
+    list.splice(list.length - 1, 0, { title: list[list.length - 1].inputText, type: "todo", move: true, })
+    list[list.length - 1].inputText = ''
+
   }
-  list[list.length-1].showInput = !list[list.length-1].showInput
-  
+  list[list.length - 1].showInput = !list[list.length - 1].showInput
+
 }
 function clone(val: any) {
   console.log(val);
@@ -122,23 +125,24 @@ function clone(val: any) {
 
 
 }
-function editKb(key:any,ele:any){
-  console.log(key,ele);
+function editKb(key: any, ele: any) {
+  console.log(key, ele);
   dialogVue.value.dialogVisible = true
-  
+
 
 }
 function onMove(val: any) {
-  if (!val.relatedContext.list[val.draggedContext.futureIndex]) {
-    return false
-  }
-  if (val.relatedContext.list[val.draggedContext.futureIndex].type == 'add') {
-    return false;
-  }
-  if (val.draggedContext.element.type == 'add') {
-    return false
-  }
-  console.log(111);
+  console.log('move',val);
+
+  // if (!val.relatedContext.list[val.draggedContext.futureIndex]) {
+  //   return false
+  // }
+  // if (val.relatedContext.list[val.draggedContext.futureIndex].type == 'add') {
+  //   return false;
+  // }
+  // if (val.draggedContext.element.type == 'add') {
+  //   return false
+  // }
 
   return val
 
@@ -150,10 +154,26 @@ function start(val: any) {
 
   return val
 }
+function reSort(list:any){
+  let tKay = list.findIndex((it:any)=>{return it.type=='add'})
+  console.log(tKay);
+  if(tKay>-1){
+    list.push(...list.splice(tKay,1))
+  }
+  console.log(list);
+  
+}
 function onEnd(val: any) {
   isMove.value = false;
   console.log('onEnd', val);
-
+  myTodos.value.forEach((el:any)=>{
+    if(el.children){
+      let last = el.children[el.children.length-1]
+      if(last.type!='add'){
+        reSort(el.children)
+      }
+    }
+  })
   return val
 }
 function pullFunction(val: any) {
@@ -164,14 +184,14 @@ function pullFunction(val: any) {
   // }
   return true;
 }
-function addTodo(key:any,it:any) {
+function addTodo(key: any, it: any) {
   it.showInput = true;
   fourKey = key;
   setTimeout(() => {
-    console.log(kbInput.value[key].focus(),it);
-    
+    console.log(kbInput.value[key].focus(), it);
+
   }, 100);
-  
+
   // val.children.splice(val.children.length - 1, 0, { title: '', type: "todo", move: true, })
 }
 function addList() {
@@ -260,6 +280,7 @@ function addList() {
     min-width: 220px;
     position: relative;
     height: 100%;
+    padding: 0 20px;
     border-radius: 15px;
     padding-top: 20px;
 
@@ -271,13 +292,14 @@ function addList() {
       height: calc(100vh - 150px);
       max-height: calc(100vh - 150px);
       overflow-y: auto;
-      padding: 0 20px;
+      // padding: 0 20px;
+
       &::-webkit-scrollbar {
-        width: 10px;
+        width: 5px;
       }
 
       &::-webkit-scrollbar-track {
-        background: #0c3540;
+        background: transparent;
         border-radius: 20px;
       }
 
@@ -323,14 +345,15 @@ function addList() {
     cursor: pointer;
     min-height: 32px;
   }
-  .mover{
+
+  .mover {
     min-height: 49px;
   }
 }
 
 .chosenClass {
   background-color: #fff;
-  
+
 }
 
 .ghost {
@@ -345,7 +368,7 @@ function addList() {
   background: #fff !important;
   opacity: 1 !important;
   transform: rotate(3deg);
-   cursor: all-scroll!important;
+  cursor: all-scroll !important;
 }
 
 .todo_btn_add {
@@ -377,8 +400,9 @@ function addList() {
   cursor: pointer;
   color: #ddd;
 }
-::v-deep .no_border .el-textarea__inner{
+
+::v-deep .no_border .el-textarea__inner {
   border: none;
-  box-shadow:none;
+  box-shadow: none;
 }
 </style>
