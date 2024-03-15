@@ -28,7 +28,7 @@
                 <el-input class="no_border" v-model="element.inputText" ref="kbInput" placeholder="输入卡片名称"
                   @blur="blurInput" resize="none" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea"> </el-input>
               </div>
-              <div v-if="!element.showInput" class="add_text" @click.stop="addTodo(key, element)">
+              <div v-show="!element.showInput" class="add_text" @click.stop="addTodo(key, element)">
                 +添加卡片
               </div>
             </div>
@@ -48,7 +48,6 @@ import mDialog from './m-dialog.vue';
 import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
 import { ref } from "vue";
-import { resolveTripleslashReference } from 'typescript';
 let fourKey: any = 0;
 let kbInput = ref(), dialogVue = ref();
 let searchText = ref('');
@@ -107,69 +106,44 @@ function init() {
 }
 init()
 function blurInput(val: any) {
-  console.log(val);
   let list = myTodos.value[fourKey].children
-
   if (list[list.length - 1].inputText) {
-    console.log(111);
     list.splice(list.length - 1, 0, { title: list[list.length - 1].inputText, type: "todo", move: true, })
     list[list.length - 1].inputText = ''
-
   }
   list[list.length - 1].showInput = !list[list.length - 1].showInput
-
 }
 function clone(val: any) {
-  console.log(val);
   return val
-
-
 }
 function editKb(key: any, ele: any) {
   console.log(key, ele);
   dialogVue.value.dialogVisible = true
-
-
 }
 function onMove(val: any) {
-  console.log('move',val);
-
-  // if (!val.relatedContext.list[val.draggedContext.futureIndex]) {
-  //   return false
-  // }
-  // if (val.relatedContext.list[val.draggedContext.futureIndex].type == 'add') {
-  //   return false;
-  // }
-  // if (val.draggedContext.element.type == 'add') {
-  //   return false
-  // }
-
+  console.log('move', val);
   return val
-
-
 }
 function start(val: any) {
   console.log('start', val);
   isMove.value = true;
-
   return val
 }
-function reSort(list:any){
-  let tKay = list.findIndex((it:any)=>{return it.type=='add'})
-  console.log(tKay);
-  if(tKay>-1){
-    list.push(...list.splice(tKay,1))
+function reSort(list: any) {
+  let tKay = list.findIndex((it: any) => { return it.type == 'add' })
+  if (tKay > -1) {
+    list.push(...list.splice(tKay, 1))
   }
   console.log(list);
-  
+
 }
 function onEnd(val: any) {
   isMove.value = false;
   console.log('onEnd', val);
-  myTodos.value.forEach((el:any)=>{
-    if(el.children){
-      let last = el.children[el.children.length-1]
-      if(last.type!='add'){
+  myTodos.value.forEach((el: any) => {
+    if (el.children) {
+      let last = el.children[el.children.length - 1]
+      if (last.type != 'add') {
         reSort(el.children)
       }
     }
@@ -187,10 +161,14 @@ function pullFunction(val: any) {
 function addTodo(key: any, it: any) {
   it.showInput = true;
   fourKey = key;
+  myTodos.value.forEach((el: any, elKey: any) => {
+    if (key != elKey && el.children && el.children[el.children.length - 1].showInput) {
+      el.children[el.children.length - 1].showInput = !el.children[el.children.length - 1].showInput;
+    }
+  })
   setTimeout(() => {
-    console.log(kbInput.value[key].focus(), it);
-
-  }, 100);
+    kbInput.value[key].focus()
+  }, 200);
 
   // val.children.splice(val.children.length - 1, 0, { title: '', type: "todo", move: true, })
 }
@@ -293,6 +271,7 @@ function addList() {
       max-height: calc(100vh - 150px);
       overflow-y: auto;
       // padding: 0 20px;
+      overflow-x: hidden;
 
       &::-webkit-scrollbar {
         width: 5px;
