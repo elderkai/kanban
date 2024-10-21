@@ -1,4 +1,5 @@
 <template>
+    <Header></Header>
   <div class="baseKanban">
     <div class="hedader">
       <div class="cover">
@@ -44,6 +45,7 @@
 </template>
 
 <script lang="ts" setup>
+import Header from "../../components/header/Header.vue"
 import mDialog from './m-dialog.vue';
 import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
@@ -179,21 +181,21 @@ function addList() {
 
 <style lang="less" scoped>
 .baseKanban {
-  background: #0c3540;
+  background: #3b99a6;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
 
-  .hedader {
-    height: 70px;
-    background: #041517;
-    background-image: linear-gradient(rgb(22 72 87 0.8), rgb(47 106 118 0.8));
+.hedader {
+    height: 190px;
     width: 100%;
-    -webkit-backdrop-filter: blur(110px);
-    backdrop-filter: blur(110px);
+    /* filter: blur(110px); */
     position: relative;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-  }
+    pointer-events: none;
+    /* box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2); */
+    position: absolute;
+    top: 0;
+}
 
   .cover {
     width: 100%;
@@ -205,10 +207,10 @@ function addList() {
 
   .searchInput {
     position: absolute;
-    margin: 0 auto;
     width: 220px;
     left: 50%;
-    top: 19px;
+    top: 50%;
+    transform: translateY(-50%);
     margin-left: -110px;
 
   }
