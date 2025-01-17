@@ -1,13 +1,6 @@
 <template>
-    <Header></Header>
   <div class="baseKanban">
-    <div class="hedader">
-      <div class="cover">
-        <el-input v-model="searchText" :prefix-icon="Search" class="searchInput" placeholder="搜索相关内容"
-          @change="filterText">
-        </el-input>
-      </div>
-    </div>
+    <Header @change="filterText"></Header>
     <div class="box_cover">
       <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
         <div class="todo_top add_btn_top" v-if="item.type" @click="addList">
@@ -47,7 +40,6 @@
 <script lang="ts" setup>
 import Header from "../../components/header/Header.vue"
 import mDialog from './m-dialog.vue';
-import { Search } from '@element-plus/icons-vue'
 import draggable from "vuedraggable";
 import { ref } from "vue";
 let fourKey: any = 0;
@@ -77,7 +69,7 @@ let myTodos: any = ref([
 ]);
 let isMove = ref(false);
 function filterText(val: any) {
-  console.log(val);
+  searchText.value = val;
 
 }
 function init() {
@@ -186,28 +178,9 @@ function addList() {
   height: 100vh;
   overflow: hidden;
 
-.hedader {
-    height: 190px;
-    width: 100%;
-    /* filter: blur(110px); */
-    position: relative;
-    pointer-events: none;
-    /* box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2); */
-    position: absolute;
-    top: 0;
-}
-
-  .cover {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background: linear-gradient(to right, rgb(6 24 29 / 20%), rgb(47 106 118 / 50%));
-
-  }
-
   .searchInput {
     position: absolute;
-    width: 220px;
+    width: 230px;
     left: 50%;
     top: 50%;
     transform: translateY(-50%);
@@ -257,7 +230,7 @@ function addList() {
   .list_todo {
     margin-top: 10px;
     height: 100%;
-    min-width: 220px;
+    min-width: 230px;
     position: relative;
     height: 100%;
     padding: 0 20px;
@@ -265,12 +238,12 @@ function addList() {
     padding-top: 20px;
 
     &:hover {
-      background: #051f26;
+      background: #048496;
     }
 
     .list-group {
-      height: calc(100vh - 150px);
-      max-height: calc(100vh - 150px);
+      height: calc(100vh - 268px);
+      max-height: calc(100vh - 268px);
       overflow-y: auto;
       // padding: 0 20px;
       overflow-x: hidden;
@@ -322,7 +295,7 @@ function addList() {
     width: 210px;
     max-width: 210px;
     box-sizing: border-box;
-    box-shadow: 11px 9px 11px rgba(69, 67, 67, 0.2);
+    box-shadow: 5px 5px 5px 1px rgb(40 102 125);
     cursor: pointer;
     min-height: 32px;
   }

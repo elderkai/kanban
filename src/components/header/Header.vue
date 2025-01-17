@@ -1,111 +1,119 @@
 <template>
-    <header id="header">header</header>
+    <div class="header">
+        <header id="header">
+
+        </header>
+        <el-input v-model="searchText" :prefix-icon="Search" class="searchInput" placeholder="搜索相关内容" @input="filterText">
+        </el-input>
+    </div>
     <!-- <DIV STYLE="width:100px;height:100000000px"></DIV> -->
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from "vue";
+import { onMounted, ref, defineEmits } from "vue";
+import { Search } from '@element-plus/icons-vue'
+let searchText = ref(""), emit = defineEmits(['change'])
 const barnerImagesData1 = [
     {
-    url: 'https://pic.imgdb.cn/item/64d89f131ddac507ccdb7db2.webp',
-    transform: [1, 0, 0, 1, 0, 0],
-    width: 1950,
-    a: 0.01
-},
-{
-    url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71e4.webp',
-    transform: [1, 0, 0, 1, -240, -5],
-    width: 457.5,
-    a: 0.035,
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10d9.webp',
-        transform: [1, 0, 0, 1, -300, 45],
-            width: 157.5,
-                deg: -Math.PI / 15000,
-                    a: 0.03,
-                        g: -0.02
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc715c.webp',
-        transform: [1, 0, 0, 1, -180, 0],
-            width: 314.3,
-                a: -0.035
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc64c2.webp',
-        transform: [1, 0, 0, 1, -300, 20],
-            width: 571.2,
-                deg: Math.PI / 40000,
-                    a: 0.05
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc65e6.webp',
-        transform: [1, 0, 0, 1, 100, 0],
-            width: 1446,
-                a: 0.01
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc655c.webp',
-        transform: [1, 0, 0, 1, 220, 0],
-            width: 158.25,
-                deg: Math.PI / 10000,
-                    a: 0.06,
-                        g: 0.045
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc6536.webp',
-        transform: [1, 0, 0, 1, -240, 0],
-            width: 1721.3,
-                a: 0.01
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc7133.webp',
-        transform: [1, 0, 0, 1, 320, 0],
-            width: 642.96,
-                a: 0.075,
-                    g: -0.025
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc649b.webp',
-        transform: [1, 0, 0, 1, 20, 0],
-            blur: 1,
-                width: 2131.5,
-                    a: 0.18
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f5c1ddac507ccdc1bbd.webp',
-        transform: [1, 0, 0, 1, 400, 0],
-            blur: 2.5,
-                width: 299.52,
-                    deg: -Math.PI / 30000,
-                        a: 0.15,
-                            g: -0.02
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f571ddac507ccdc113d.webp',
-        transform: [1, 0, 0, 1, 0, 10],
-            width: 457.1,
-                deg: Math.PI / 20000,
-                    f: 0.0001,
-                        a: 0.06,
-                            g: 0.01
-},
-{
-    url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10aa.webp',
-        transform: [1, 0, 0, 1, -150, 0],
-            width: 419.2,
-                opacity: [0.1, 1],
-                    a: -0.02
-},
-{
-    url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc1077.webp',
-        transform: [1, 0, 0, 1, 40, 10],
-            width: 816.9,
-                blur: 1,
-                    a: 0.09
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc102a.webp',
-        transform: [1, 0, 0, 1, 20, 0],
-            blur: 3,
-                width: 1805.6,
-                    a: 0.3
-}, {
-    url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71c6.webp',
+        url: 'https://pic.imgdb.cn/item/64d89f131ddac507ccdb7db2.webp',
         transform: [1, 0, 0, 1, 0, 0],
-            width: 2400,
-                a: 0.25
-}
+        width: 1950,
+        a: 0.01
+    },
+    {
+        url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71e4.webp',
+        transform: [1, 0, 0, 1, -240, -5],
+        width: 457.5,
+        a: 0.035,
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10d9.webp',
+        transform: [1, 0, 0, 1, -300, 45],
+        width: 157.5,
+        deg: -Math.PI / 15000,
+        a: 0.03,
+        g: -0.02
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc715c.webp',
+        transform: [1, 0, 0, 1, -180, 0],
+        width: 314.3,
+        a: -0.035
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc64c2.webp',
+        transform: [1, 0, 0, 1, -300, 20],
+        width: 571.2,
+        deg: Math.PI / 40000,
+        a: 0.05
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc65e6.webp',
+        transform: [1, 0, 0, 1, 100, 0],
+        width: 1446,
+        a: 0.01
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc655c.webp',
+        transform: [1, 0, 0, 1, 220, 0],
+        width: 158.25,
+        deg: Math.PI / 10000,
+        a: 0.06,
+        g: 0.045
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc6536.webp',
+        transform: [1, 0, 0, 1, -240, 0],
+        width: 1721.3,
+        a: 0.01
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc7133.webp',
+        transform: [1, 0, 0, 1, 320, 0],
+        width: 642.96,
+        a: 0.075,
+        g: -0.025
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc649b.webp',
+        transform: [1, 0, 0, 1, 20, 0],
+        blur: 1,
+        width: 2131.5,
+        a: 0.18
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f5c1ddac507ccdc1bbd.webp',
+        transform: [1, 0, 0, 1, 400, 0],
+        blur: 2.5,
+        width: 299.52,
+        deg: -Math.PI / 30000,
+        a: 0.15,
+        g: -0.02
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f571ddac507ccdc113d.webp',
+        transform: [1, 0, 0, 1, 0, 10],
+        width: 457.1,
+        deg: Math.PI / 20000,
+        f: 0.0001,
+        a: 0.06,
+        g: 0.01
+    },
+    {
+        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10aa.webp',
+        transform: [1, 0, 0, 1, -150, 0],
+        width: 419.2,
+        opacity: [0.1, 1],
+        a: -0.02
+    },
+    {
+        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc1077.webp',
+        transform: [1, 0, 0, 1, 40, 10],
+        width: 816.9,
+        blur: 1,
+        a: 0.09
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc102a.webp',
+        transform: [1, 0, 0, 1, 20, 0],
+        blur: 3,
+        width: 1805.6,
+        a: 0.3
+    }, {
+        url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71c6.webp',
+        transform: [1, 0, 0, 1, 0, 0],
+        width: 2400,
+        a: 0.25
+    }
 ]
 
 
@@ -221,6 +229,9 @@ const barnerImagesData2 = [{
     blur: 3
 }
 ] as any
+function filterText(val: any) {
+    emit('change', val)
+}
 function init() {
     const body: any = document.getElementById('header')
     const lerp = (start: any, end: any, amt: any) => (1 - amt) * start + amt * end; // 计算线性插值
@@ -329,6 +340,19 @@ onMounted(() => {
 </script>
 
 <style lang="less"  scoped>
+.header {
+    position: relative;
+
+    .searchInput {
+        position: absolute;
+        width: 230px;
+        left: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: -110px;
+    }
+}
+
 #header {
     position: relative;
     overflow: hidden;
