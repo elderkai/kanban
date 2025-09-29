@@ -1,5 +1,6 @@
 <template>
-  <div class="baseKanban">
+  <div class="baseKanban" >
+    <exportRz></exportRz>
     <Header @change="filterText"></Header>
     <div class="box_cover">
       <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
@@ -38,6 +39,7 @@
 </template>
 
 <script lang="ts" setup>
+import exportRz from "@/components/exportRz.vue"
 import Header from "../../components/header/Header.vue"
 import mDialog from './m-dialog.vue';
 import draggable from "vuedraggable";
@@ -68,6 +70,7 @@ let myTodos: any = ref([
   },
 ]);
 let isMove = ref(false);
+let loading = ref(true)
 function filterText(val: any) {
   searchText.value = val;
 
