@@ -7,6 +7,7 @@ import router from './router'
 import { registerMicroApps, start } from 'qiankun';
 import apps from "@/app/index"
 import ElementPlus from 'element-plus'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import 'element-plus/dist/index.css'
 // import "@/assets/loading/loading.css"
 const app = createApp(App)
@@ -14,7 +15,7 @@ registerMicroApps(apps)
 start()
 
 app.use(createPinia())
-app.use(ElementPlus)
+app.use(ElementPlus, { locale: zhCn })
 app.use(directive)
 app.use(router)
 

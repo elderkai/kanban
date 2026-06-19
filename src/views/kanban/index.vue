@@ -1,365 +1,571 @@
 <template>
-  <div class="baseKanban" >
-    <exportRz></exportRz>
-    <Header @change="filterText"></Header>
+  <div class="baseKanban">
+    <Header @change="store.searchText = $event"></Header>
     <div class="box_cover">
-      <div class="list_todo" v-for="(item, key) in myTodos" :key="key">
-        <div class="todo_top add_btn_top" v-if="item.type" @click="addList">
-          <div class="title">{{ item.title }}
+      <div class="list_todo" v-for="(item, key) in store.columns" :key="key">
+        <!-- "+添加列表"按钮 -->
+        <div class="todo_top add_btn_top" v-if="'type' in item && item.type === 'add'" @click="addList">
+          <div class="title">{{ item.title }}</div>
+        </div>
+        <!-- 列表头部 -->
+        <div class="todo_top" v-else>
+          <div class="title">
+            {{ item.title }}（<span v-if="item.children">{{ getTodoCount(item.children) }}</span>）
           </div>
         </div>
-        <div class="todo_top" v-else>
-          <div class="title">{{ item.title }}（<span v-if="item.children">
-              {{ item.children.length + 1 }}）
-            </span></div>
-        </div>
-        <draggable v-if="item.children" class="dragArea list-group" :drag-class="'dragClass'" :force-fallback="true"
-          :list="item.children" :clone="clone" ghost-class="ghost" chosen-class="chosenClass" animation="300"
-          :handle="`.mover`" :group="{ name: 'dragArea', pull: pullFunction }" @start="start" @end="onEnd" :move="onMove"
-          item-key="id">
+        <!-- 拖拽区域 -->
+        <draggable
+          v-if="'children' in item && item.children"
+          class="dragArea list-group"
+          :drag-class="'dragClass'"
+          :force-fallback="true"
+          :list="item.children"
+          :clone="clone"
+          ghost-class="ghost"
+          chosen-class="chosenClass"
+          animation="300"
+          :handle="'.mover'"
+          :group="{ name: 'dragArea', pull: pullFunction }"
+          @start="start"
+          @end="onEnd"
+          @move="onMove"
+          item-key="key"
+        >
           <template #item="{ element }">
-            <div v-if="element.type == 'add'" class="todo_item">
-              <div v-show="element.showInput">
-                <el-input class="no_border" v-model="element.inputText" ref="kbInput" placeholder="输入卡片名称"
-                  @blur="blurInput" resize="none" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea"> </el-input>
+            <div>
+              <!-- "+添加卡片"按钮 -->
+              <div v-if="element.type === 'add'" class="todo_item">
+                <div class="add_text" @click.stop="store.openCreateDialog(key)">
+                  +添加卡片
+                </div>
               </div>
-              <div v-show="!element.showInput" class="add_text" @click.stop="addTodo(key, element)">
-                +添加卡片
+
+              <!-- 普通卡片 -->
+              <div
+                v-else
+                v-show="matchesSearch(element)"
+                class="todo_item card-item"
+                :class="{
+                  mover: element.move,
+                  'priority-high': element.priority === 'high',
+                  'priority-medium': element.priority === 'medium',
+                  'priority-low': element.priority === 'low',
+                  overdue: isOverdue(element)
+                }"
+              >
+                <!-- 优先级色条 -->
+                <div class="priority-bar" :class="'priority-' + element.priority"></div>
+
+                <!-- 卡片内容区（点击打开编辑弹窗） -->
+                <div class="card-body" @click="store.openEditDialog(element)">
+                  <!-- 标题 -->
+                  <div class="card-title">{{ element.title }}</div>
+
+                  <!-- 标签行 -->
+                  <div class="card-tags" v-if="element.tags && element.tags.length">
+                    <el-tag
+                      v-for="tag in element.tags"
+                      :key="tag.id"
+                      :color="tag.color"
+                      size="small"
+                      effect="dark"
+                      class="card-tag"
+                    >
+                      {{ tag.name }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 元信息行：日期 + 负责人 -->
+                  <div class="card-meta" v-if="element.dueDate || element.assignee">
+                    <span v-if="element.dueDate" class="due-date" :class="{ 'text-danger': isOverdue(element) }">
+                      <el-icon><Calendar /></el-icon>
+                      {{ formatDate(element.dueDate) }}
+                    </span>
+                    <span v-if="element.assignee" class="assignee">
+                      <el-icon><User /></el-icon>
+                      {{ element.assignee }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Hover 操作按钮 -->
+                <div class="card-actions">
+                  <el-button :icon="Edit" size="small" circle @click.stop="store.openEditDialog(element)" title="编辑" />
+                  <el-button :icon="Delete" size="small" circle type="danger" @click.stop="confirmDelete(element)" title="删除" />
+                </div>
               </div>
             </div>
-            <div :class="`todo_item ${element.move ? 'mover' : ''}`" @click="editKb(key, element)"
-              v-else-if="element.type == 'todo'" v-show="searchText == '' || element.title.indexOf(searchText) > -1">
-              {{ element.title }}</div>
           </template>
         </draggable>
       </div>
     </div>
-    <mDialog ref="dialogVue"></mDialog>
+
+    <!-- 编辑弹窗 -->
+    <mDialog />
   </div>
 </template>
 
 <script lang="ts" setup>
-import exportRz from "@/components/exportRz.vue"
-import Header from "../../components/header/Header.vue"
-import mDialog from './m-dialog.vue';
-import draggable from "vuedraggable";
-import { ref } from "vue";
-let fourKey: any = 0;
-let kbInput = ref(), dialogVue = ref();
-let searchText = ref('');
-let myTodos: any = ref([
-  {
-    title: '需求分析与方案设计',
-    children: [],
-  },
-  {
-    title: '开发中',
-    children: [],
-  },
-  {
-    title: '测试中',
-    children: [],
-  },
-  {
-    title: '发布中',
-    children: [],
-  },
-  {
-    title: '已完成',
-    children: [],
-  },
-]);
-let isMove = ref(false);
-let loading = ref(true)
-function filterText(val: any) {
-  searchText.value = val;
+import { ref } from 'vue'
+import { ElMessageBox } from 'element-plus'
+import { Edit, Delete, Calendar, User } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import Header from '../../components/header/Header.vue'
+import mDialog from './m-dialog.vue'
+import draggable from 'vuedraggable'
+import { useKanbanStore } from '@/stores/kanban'
+import type { KanbanCard, KanbanList } from '@/types/kanban'
 
+const store = useKanbanStore()
+let isMove = ref(false)
+
+// ========== 搜索过滤 ==========
+function matchesSearch(card: KanbanCard): boolean {
+  const s = store.searchText
+  if (!s) return true
+  const lower = s.toLowerCase()
+  return (
+    card.title.toLowerCase().includes(lower) ||
+    (card.tags && card.tags.some((t) => t.name.toLowerCase().includes(lower))) ||
+    (card.assignee && card.assignee.toLowerCase().includes(lower))
+  )
 }
-function init() {
-  let key = 1;
-  myTodos.value.forEach((it: any) => {
-    for (let index = 0; index < 10; index++) {
-      it.children.push({
-        title: `${it.title}--${index + 1}`,
-        type: 'todo',
-        move: true,
-        key
-      })
-      key++
-    }
-    it.children.push({
-      title: ``,
-      type: 'add',
-      move: false,
-      showInput: false,
-      inputText: '',
-      key
+
+// ========== 日期辅助 ==========
+function isOverdue(card: KanbanCard): boolean {
+  if (!card.dueDate) return false
+  return dayjs(card.dueDate).isBefore(dayjs(), 'day')
+}
+
+function formatDate(date: string): string {
+  return dayjs(date).format('MM-DD')
+}
+
+// ========== 卡片计数 ==========
+function getTodoCount(children: any[]): number {
+  return children.filter((c) => c.type === 'todo').length
+}
+
+// ========== 删除卡片 ==========
+function confirmDelete(card: KanbanCard) {
+  ElMessageBox.confirm('确定删除该卡片吗？', '确认删除', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      store.deleteCard(card.key)
     })
-    key++
-  });
-  myTodos.value.push({ title: "+添加列表", type: 'add' })
-  console.log(myTodos.value);
+    .catch(() => {})
+}
 
+// ========== 添加列表 ==========
+function addList() {
+  ElMessageBox.prompt('请输入列表名称', '添加列表', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputPattern: /\S/,
+    inputErrorMessage: '列表名称不能为空'
+  })
+    .then(({ value }) => {
+      store.createList(value.trim())
+    })
+    .catch(() => {})
 }
-init()
-function blurInput(val: any) {
-  let list = myTodos.value[fourKey].children
-  if (list[list.length - 1].inputText) {
-    list.splice(list.length - 1, 0, { title: list[list.length - 1].inputText, type: "todo", move: true, })
-    list[list.length - 1].inputText = ''
-  }
-  list[list.length - 1].showInput = !list[list.length - 1].showInput
-}
+
+// ========== 拖拽事件 ==========
 function clone(val: any) {
   return val
 }
-function editKb(key: any, ele: any) {
-  console.log(key, ele);
-  dialogVue.value.dialogVisible = true
-}
+
 function onMove(val: any) {
-  console.log('move', val);
-  return val
+  console.log('move', val)
+  return true
 }
+
 function start(val: any) {
-  console.log('start', val);
-  isMove.value = true;
-  return val
+  console.log('start', val)
+  isMove.value = true
 }
-function reSort(list: any) {
-  let tKay = list.findIndex((it: any) => { return it.type == 'add' })
-  if (tKay > -1) {
-    list.push(...list.splice(tKay, 1))
-  }
-  console.log(list);
 
-}
 function onEnd(val: any) {
-  isMove.value = false;
-  console.log('onEnd', val);
-  myTodos.value.forEach((el: any) => {
-    if (el.children) {
-      let last = el.children[el.children.length - 1]
-      if (last.type != 'add') {
-        reSort(el.children)
-      }
-    }
-  })
-  return val
+  isMove.value = false
+  console.log('onEnd', val)
+  store.reSort()
 }
+
 function pullFunction(val: any) {
-  console.log('pullFunc', val);
-
-  // if(val.type=='add'){
-  //   return false
-  // }
-  return true;
-}
-function addTodo(key: any, it: any) {
-  it.showInput = true;
-  fourKey = key;
-  myTodos.value.forEach((el: any, elKey: any) => {
-    if (key != elKey && el.children && el.children[el.children.length - 1].showInput) {
-      el.children[el.children.length - 1].showInput = !el.children[el.children.length - 1].showInput;
-    }
-  })
-  setTimeout(() => {
-    kbInput.value[key].focus()
-  }, 200);
-
-  // val.children.splice(val.children.length - 1, 0, { title: '', type: "todo", move: true, })
-}
-function addList() {
-  alert('请稍后')
+  console.log('pullFunc', val)
+  return true
 }
 </script>
 
 <style lang="less" scoped>
 .baseKanban {
-  background: #3b99a6;
+  background: linear-gradient(135deg, #1a3c47 0%, #2d6a7d 30%, #3b99a6 60%, #4db8c7 100%);
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+}
 
-  .searchInput {
-    position: absolute;
-    width: 230px;
-    left: 50%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: -110px;
+// ========== 搜索框美化 ==========
+::v-deep .searchInput .el-input__wrapper {
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 
+  &:hover,
+  &.is-focus {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    background: #fff;
   }
 }
 
-::v-deep .searchInput .el-input__wrapper {
-  border-radius: 50px;
-  box-shadow: 11px 9px 11px #0003
-}
-
+// ========== 看板容器 ==========
 .box_cover {
   display: flex;
   justify-content: start;
-  padding-left: 20px;
+  padding: 10px 0 10px 24px;
   overflow-x: auto;
   overflow-y: hidden;
   width: 100%;
   height: calc(100vh - 70px);
+  gap: 4px;
 
+  // 自定义滚动条
   &::-webkit-scrollbar {
-    width: 10px;
+    height: 8px;
   }
-
   &::-webkit-scrollbar-track {
-    background: #0c3540;
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    margin: 0 20px;
   }
-
   &::-webkit-scrollbar-thumb {
-    background: #6ac1cd;
+    background: rgba(255, 255, 255, 0.35);
     border-radius: 10px;
   }
-
   &::-webkit-scrollbar-thumb:hover {
-    background: #6ac1cd;
-    border-radius: 20px;
-  }
-
-  &::-webkit-scrollbar-thumb:active {
-    background: #6ac1cd;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.55);
   }
 
   .list_todo {
-    margin-top: 10px;
+    margin-top: 8px;
     height: 100%;
-    min-width: 230px;
+    min-width: 280px;
+    max-width: 280px;
     position: relative;
-    height: 100%;
-    padding: 0 20px;
-    border-radius: 15px;
-    padding-top: 20px;
+    padding: 0 12px;
+    border-radius: 16px;
+    padding-top: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(4px);
+    transition: background 0.25s ease;
+    flex-shrink: 0;
 
     &:hover {
-      background: #048496;
+      background: rgba(255, 255, 255, 0.13);
     }
 
     .list-group {
-      height: calc(100vh - 268px);
-      max-height: calc(100vh - 268px);
+      height: calc(100vh - 260px);
+      max-height: calc(100vh - 260px);
       overflow-y: auto;
-      // padding: 0 20px;
       overflow-x: hidden;
+      padding: 2px 4px;
 
       &::-webkit-scrollbar {
-        width: 5px;
+        width: 4px;
       }
-
       &::-webkit-scrollbar-track {
         background: transparent;
-        border-radius: 20px;
       }
-
       &::-webkit-scrollbar-thumb {
-        background: #6ac1cd;
-        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
       }
-
       &::-webkit-scrollbar-thumb:hover {
-        background: #6ac1cd;
-        border-radius: 20px;
-      }
-
-      &::-webkit-scrollbar-thumb:active {
-        background: #6ac1cd;
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.4);
       }
     }
   }
 
+  // ========== 列标题 ==========
   .todo_top {
-    // background: #52bfd1;
-    // padding: 20px;
-    border-radius: 50px;
-    margin-bottom: 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
     text-align: left;
     box-sizing: border-box;
     color: #fff;
-    padding-left: 20px;
-    // box-shadow: 11px 9px 11px rgba(69, 67, 67, 0.2);
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(6px);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
-  .todo_item {
+  .add_btn_top {
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: all 0.25s ease;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.04) !important;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.12) !important;
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: scale(1.02);
+    }
+  }
+
+  // ========== 卡片主体 ==========
+  .card-item {
     position: relative;
     background: #fff;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    width: 210px;
-    max-width: 210px;
+    padding: 12px 36px 12px 8px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    width: 252px;
+    max-width: 252px;
     box-sizing: border-box;
-    box-shadow: 5px 5px 5px 1px rgb(40 102 125);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
     cursor: pointer;
     min-height: 32px;
+    display: flex;
+    flex-direction: row;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+
+    &:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    // 优先级色条
+    .priority-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      border-radius: 12px 0 0 12px;
+      background: #e0e0e0;
+
+      &.priority-high {
+        background: linear-gradient(180deg, #ff6b6b, #ee5a24);
+      }
+      &.priority-medium {
+        background: linear-gradient(180deg, #ffa726, #ff9800);
+      }
+      &.priority-low {
+        background: linear-gradient(180deg, #66bb6a, #43a047);
+      }
+      &.priority-none {
+        background: #e8e8e8;
+      }
+    }
+
+    // 优先级色条替代 border-left
+    &.priority-high,
+    &.priority-medium,
+    &.priority-low {
+      border-left: none;
+    }
+    &.overdue {
+      background: linear-gradient(135deg, #fff5f5, #fff0f0);
+      border-color: #ffcdd2;
+
+      &:hover {
+        border-color: #ef9a9a;
+      }
+    }
+
+    .card-body {
+      flex: 1;
+      min-width: 0;
+      padding-left: 4px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #2c3e50;
+      word-break: break-word;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+
+      .card-tag {
+        font-size: 11px;
+        border-radius: 6px;
+        padding: 0 8px;
+        height: 20px;
+        line-height: 20px;
+        font-weight: 500;
+      }
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #a0aec0;
+
+      .due-date,
+      .assignee {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 6px;
+        background: #f7fafc;
+        border-radius: 6px;
+
+        .el-icon {
+          font-size: 13px;
+        }
+      }
+      .text-danger {
+        color: #e53e3e;
+        font-weight: 700;
+        background: #fff5f5;
+      }
+    }
+
+    // Hover 操作按钮
+    .card-actions {
+      position: absolute;
+      top: 6px;
+      right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      transform: translateX(4px);
+      transition: all 0.2s ease;
+      z-index: 5;
+      pointer-events: none;
+
+      .el-button {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        pointer-events: auto;
+
+        .el-icon {
+          font-size: 15px;
+        }
+      }
+    }
+    &:hover .card-actions {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    &:hover .card-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .mover {
     min-height: 49px;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+    &:hover {
+      cursor: grab;
+    }
   }
 }
 
+// ========== 拖拽样式 ==========
 .chosenClass {
-  background-color: #fff;
-
+  background: #fff !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+  transform: rotate(2deg) scale(1.03) !important;
+  z-index: 100;
 }
-
 .ghost {
-  opacity: 0;
-}
+  opacity: 0.35;
+  background: #e2e8f0;
+  border: 2px dashed #a0aec0;
+  border-radius: 12px;
 
-.ghost {
-  background: #fff;
+  * {
+    visibility: hidden;
+  }
 }
-
 .dragClass {
   background: #fff !important;
   opacity: 1 !important;
-  transform: rotate(3deg);
-  cursor: all-scroll !important;
+  transform: rotate(3.5deg) scale(1.05) !important;
+  cursor: grabbing !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25) !important;
+  z-index: 200;
 }
 
-.todo_btn_add {
-  background: #FFF;
-  border-radius: 15px;
-  height: 32px;
-  line-height: 32px;
-  text-align: center;
-  cursor: pointer;
+// ========== "+添加卡片"占位容器 ==========
+.todo_item {
+  position: relative;
+  min-height: 36px;
 }
 
+// ========== "+添加卡片"按钮 ==========
 .add_text {
-  position: absolute;
   width: 100%;
-  height: 100%;
-  border-radius: 15px;
-  height: 32px;
-  line-height: 32px;
+  border-radius: 10px;
+  line-height: 36px;
   text-align: center;
   cursor: pointer;
-  left: 0;
-  top: 0;
+  color: #a0aec0;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #4a5568;
+    background: rgba(0, 0, 0, 0.04);
+  }
 }
 
-
-.box_cover .add_btn_top {
-  background: transparent;
-  box-shadow: none;
-  cursor: pointer;
-  color: #ddd;
-}
-
+// ========== 输入框无边框 ==========
 ::v-deep .no_border .el-textarea__inner {
   border: none;
   box-shadow: none;
+  border-radius: 10px;
+  background: #f7fafc;
+  font-size: 14px;
+  resize: none;
+  padding: 10px 12px;
+
+  &:focus {
+    background: #fff;
+    box-shadow: 0 0 0 2px #409eff33;
+  }
 }
 </style>
