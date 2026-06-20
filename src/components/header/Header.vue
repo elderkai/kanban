@@ -1,381 +1,185 @@
 <template>
-    <div class="header">
-        <header id="header">
-
-        </header>
-        <el-input v-model="searchText" :prefix-icon="Search" class="searchInput" placeholder="搜索相关内容" @input="filterText">
-        </el-input>
+  <div class="header">
+    <div class="header-left">
+      <div class="app-logo">
+        <svg class="logo-svg" viewBox="0 0 32 32" width="28" height="28">
+          <rect x="2" y="4" width="8" height="24" rx="2" fill="#4f46e5" opacity="0.9"/>
+          <rect x="12" y="8" width="8" height="20" rx="2" fill="#6366f1" opacity="0.7"/>
+          <rect x="22" y="2" width="8" height="26" rx="2" fill="#818cf8" opacity="0.5"/>
+        </svg>
+        <span class="logo-text">看板</span>
+      </div>
     </div>
-    <!-- <DIV STYLE="width:100px;height:100000000px"></DIV> -->
+
+    <div class="header-center">
+      <el-input
+        v-model="searchText"
+        :prefix-icon="Search"
+        class="searchInput"
+        placeholder="搜索卡片、标签、负责人..."
+        clearable
+        @input="filterText"
+      />
+    </div>
+
+    <div class="header-right">
+      <div class="board-stats">
+        <span class="stat-item">
+          <el-icon><Grid /></el-icon>
+          {{ columnCount }} 列
+        </span>
+        <span class="stat-divider">·</span>
+        <span class="stat-item">
+          <el-icon><Document /></el-icon>
+          {{ cardCount }} 卡片
+        </span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, defineEmits } from "vue";
-import { Search } from '@element-plus/icons-vue'
-let searchText = ref(""), emit = defineEmits(['change'])
-const barnerImagesData1 = [
-    {
-        url: 'https://pic.imgdb.cn/item/64d89f131ddac507ccdb7db2.webp',
-        transform: [1, 0, 0, 1, 0, 0],
-        width: 1950,
-        a: 0.01
-    },
-    {
-        url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71e4.webp',
-        transform: [1, 0, 0, 1, -240, -5],
-        width: 457.5,
-        a: 0.035,
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10d9.webp',
-        transform: [1, 0, 0, 1, -300, 45],
-        width: 157.5,
-        deg: -Math.PI / 15000,
-        a: 0.03,
-        g: -0.02
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc715c.webp',
-        transform: [1, 0, 0, 1, -180, 0],
-        width: 314.3,
-        a: -0.035
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc64c2.webp',
-        transform: [1, 0, 0, 1, -300, 20],
-        width: 571.2,
-        deg: Math.PI / 40000,
-        a: 0.05
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc65e6.webp',
-        transform: [1, 0, 0, 1, 100, 0],
-        width: 1446,
-        a: 0.01
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc655c.webp',
-        transform: [1, 0, 0, 1, 220, 0],
-        width: 158.25,
-        deg: Math.PI / 10000,
-        a: 0.06,
-        g: 0.045
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc6536.webp',
-        transform: [1, 0, 0, 1, -240, 0],
-        width: 1721.3,
-        a: 0.01
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f811ddac507ccdc7133.webp',
-        transform: [1, 0, 0, 1, 320, 0],
-        width: 642.96,
-        a: 0.075,
-        g: -0.025
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f7c1ddac507ccdc649b.webp',
-        transform: [1, 0, 0, 1, 20, 0],
-        blur: 1,
-        width: 2131.5,
-        a: 0.18
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f5c1ddac507ccdc1bbd.webp',
-        transform: [1, 0, 0, 1, 400, 0],
-        blur: 2.5,
-        width: 299.52,
-        deg: -Math.PI / 30000,
-        a: 0.15,
-        g: -0.02
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f571ddac507ccdc113d.webp',
-        transform: [1, 0, 0, 1, 0, 10],
-        width: 457.1,
-        deg: Math.PI / 20000,
-        f: 0.0001,
-        a: 0.06,
-        g: 0.01
-    },
-    {
-        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc10aa.webp',
-        transform: [1, 0, 0, 1, -150, 0],
-        width: 419.2,
-        opacity: [0.1, 1],
-        a: -0.02
-    },
-    {
-        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc1077.webp',
-        transform: [1, 0, 0, 1, 40, 10],
-        width: 816.9,
-        blur: 1,
-        a: 0.09
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f561ddac507ccdc102a.webp',
-        transform: [1, 0, 0, 1, 20, 0],
-        blur: 3,
-        width: 1805.6,
-        a: 0.3
-    }, {
-        url: 'https://pic.imgdb.cn/item/64d89f821ddac507ccdc71c6.webp',
-        transform: [1, 0, 0, 1, 0, 0],
-        width: 2400,
-        a: 0.25
-    }
-]
+import { ref, computed } from 'vue'
+import { Search, Grid, Document } from '@element-plus/icons-vue'
+import { useKanbanStore } from '@/stores/kanban'
 
+const store = useKanbanStore()
+const searchText = ref('')
+const emit = defineEmits(['change'])
 
-const barnerImagesData2 = [{
-    "width": 1916,
-    "height": 179,
-    url: 'https://pic.imgdb.cn/item/64e08056661c6c8e540748c5.webp',
-    "transform": [1, 0, 0, 1, 0, 0],
-    a: 0.01
-},
-{
-    "width": 690,
-    "height": 56,
-    url: 'https://pic.imgdb.cn/item/64e0808e661c6c8e5407fb3d.webp',
-    "transform": [1, 0, 0, 1, 95.8065, -19.1613],
-    a: 0.02
-},
-{
-    "width": 1360,
-    "height": 179,
-    url: 'https://pic.imgdb.cn/item/64e083b8661c6c8e5411820c.webp',
-    "transform": [1, 0, 0, 1, 223.548, 9.58065],
-    a: 0.015
-},
-{
-    "width": 1781,
-    "height": 179,
-    url: 'https://pic.imgdb.cn/item/64e083cf661c6c8e5411c5d2.webp',
-    "transform": [1, 0, 0, 1, -102.194, 6.3871],
-    a: 0.02
-},
-{
-    "width": 911,
-    "height": 141,
-    "url": "https://pic.imgdb.cn/item/64e083e5661c6c8e541200a9.webp",
-    "transform": [1, 0, 0, 1, -127.742, 25.5484],
-    a: 0.04,
-    opacity: [1, 0]
-},
-{
-    "width": 911,
-    "height": 141,
-    "url": "https://pic.imgdb.cn/item/64e08404661c6c8e541256f4.webp",
-    "transform": [1, 0, 0, 1, -127.742, 25.5484],
-    a: 0.04,
-    opacity: [0, 1],
-},
-{
-    "width": 84,
-    "height": 45,
-    "url": "https://pic.imgdb.cn/item/64e0840d661c6c8e541271aa.webp",
-    "transform": [1, 0, 0, 1, -558.871, 37.2581],
-    a: 0.02
-},
-{
-    "width": 201,
-    "height": 103,
-    "url": "https://pic.imgdb.cn/item/64e08416661c6c8e541289a1.webp",
-    "transform": [1, 0, 0, 1, -606.774, 44.7097],
-    a: 0.1
-},
-{
-    "width": 95,
-    "height": 34,
-    "url": "https://pic.imgdb.cn/item/64e08421661c6c8e5412a883.webp",
-    "transform": [1, 0, 0, 1, 380.565, 76.1129],
-    a: 0.07
-},
-{
-    "width": 68,
-    "height": 40,
-    "url": "https://pic.imgdb.cn/item/64e0842c661c6c8e5412c88f.webp",
-    "transform": [1, 0, 0, 1, 63.871, 0],
-    a: 0.075,
-    deg: -Math.PI / 40000,
-    g: -0.0075
-},
-{
-    "width": 304,
-    "height": 116,
-    "url": "https://pic.imgdb.cn/item/64e08435661c6c8e5412e1ee.webp",
-    "transform": [1, 0, 0, 1, -127.742, 12.7742],
-    a: 0.04
-},
-{
-    "width": 259,
-    "height": 64,
-    "url": "https://pic.imgdb.cn/item/64e0843c661c6c8e5412f5b4.webp",
-    "transform": [1, 0, 0, 1, -193.742, 41.5161],
-    a: 0.04,
-    deg: Math.PI / 40000,
-},
-{
-    "width": 1980,
-    "height": 221,
-    "url": "https://pic.imgdb.cn/item/64e08445661c6c8e54130dee.webp",
-    "transform": [1, 0, 0, 1, -23.9516, -3.99194],
-    a: 0.07
-},
-{
-    "width": 196,
-    "height": 88,
-    "url": "https://pic.imgdb.cn/item/64e0844c661c6c8e54132471.webp",
-    "transform": [1, 0, 0, 1, -268.258, -51.0968],
-    a: 0.16
-},
-{
-    "width": 2235,
-    "height": 209,
-    "url": "https://pic.imgdb.cn/item/64e08455661c6c8e54133dda.webp",
-    "transform": [1, 0, 0, 1, 0, -14.9032],
-    a: 0.16,
-    blur: 3
-}
-] as any
-function filterText(val: any) {
-    emit('change', val)
-}
-function init() {
-    const body: any = document.getElementById('header')
-    const lerp = (start: any, end: any, amt: any) => (1 - amt) * start + amt * end; // 计算线性插值
-    const barnersData = [barnerImagesData1, barnerImagesData2]
-    let allImagesData = barnerImagesData1
-    let compensate = 0 // 视窗补偿值
-    let layers: any = [] // DOM集合
-    const setData = barnersData[1 - 1]
-    allImagesData = setData;
-    console.log(body);
-    body.innerHTML = ""
-    layers = []
-    // 添加图片元素
-    function initItems() {
-        compensate = window.innerWidth > 1650 ? window.innerWidth / 1650 : 1
-        if (layers.length <= 0) {
-            body.style.display = 'none'
-            for (let i = 0; i < allImagesData.length; i++) {
-                const item = allImagesData[i]
-                const layer = document.createElement('div')
-                layer.classList.add('layer')
-                layer.style = 'transform:' + new DOMMatrix(item.transform)
-                item.opacity && (layer.style.opacity = item.opacity[0])
-                const img = document.createElement('img')
-                img.src = item.url
-                img.style.filter = `blur(${item.blur}px)`
-                img.style.width = `${item.width * compensate}px`
-                layer.appendChild(img)
-                body.appendChild(layer)
-            }
-            body.style.display = ''
-            layers = document.querySelectorAll(".layer")
-        } else {
-            for (let i = 0; i < layers.length; i++) {
-                layers[i].firstElementChild.style.width = `${allImagesData[i].width * compensate}px`
-            }
-        }
-    }
-    initItems()
+const columnCount = computed(() =>
+  store.columns.filter((col) => !('type' in col) || col.type !== 'add').length
+)
 
-    let initX = 0
-    let moveX = 0
-    let startTime = 0;
-    const duration = 300; // 动画持续时间（毫秒）
-    function mouseMove() { // 滑动操作
-        animate()
+const cardCount = computed(() => {
+  let count = 0
+  for (const col of store.columns) {
+    if ('children' in col) {
+      count += col.children.filter((item) => item.type === 'todo').length
     }
-
-    function leave() {
-        startTime = 0;
-        requestAnimationFrame(homing); // 开始动画
-    }
-
-    function homing(timestamp: any) {
-        !startTime && (startTime = timestamp)
-        const elapsed = timestamp - startTime
-        const progress = Math.min(elapsed / duration, 1)
-        animate(progress) // 传递动画进度
-        progress < 1 && requestAnimationFrame(homing) // 继续下一帧
-    }
-    // 动画执行
-    function animate(progress: any) {
-        if (layers.length <= 0) return
-        const isHoming = typeof progress === 'number'
-        for (let i = 0; i < layers.length; i++) {
-            const layer = layers[i];
-            const item = allImagesData[i]
-            let m = new DOMMatrix(item.transform)
-            let move = moveX * item.a // 移动X translateX
-            let s = item.f ? item.f * moveX + 1 : 1 // 放大比例 Scale
-            let g = moveX * (item.g || 0) // 移动Y translateY
-            if (isHoming) { // 回正时处理
-                m.e = lerp(moveX * item.a + item.transform[4], item.transform[4], progress)
-                move = 0
-                s = lerp(item.f ? item.f * moveX + 1 : 1, 1, progress)
-                g = lerp(item.g ? item.g * moveX : 0, 0, progress)
-            }
-            m = m.multiply(new DOMMatrix([m.a * s, m.b, m.c, m.d * s, move, g]))
-            if (item.deg) { // 有旋转角度
-                const deg = isHoming ? lerp(item.deg * moveX, 0, progress) : item.deg * moveX
-                m = m.multiply(new DOMMatrix([Math.cos(deg), Math.sin(deg), -Math.sin(deg), Math.cos(deg), 0, 0]))
-            }
-            if (item.opacity) { // 有透明度变化
-                layer.style.opacity = isHoming && moveX > 0 ? lerp(item.opacity[1], item.opacity[0], progress) : lerp(item
-                    .opacity[0], item.opacity[1], moveX / window.innerWidth * 2)
-            }
-            layer.style.transform = m // 应用所有变换效果
-        }
-    }
-    // 鼠标滑入与滑动
-    body.addEventListener('mouseover', (e) => initX = e.pageX)
-    body.addEventListener('mousemove', (e) => {
-        moveX = e.pageX - initX
-        requestAnimationFrame(mouseMove)
-    })
-    // 鼠标已经离开了视窗或者切出浏览器，执行回正动画
-    body.addEventListener("mouseleave", leave)
-    // document.addEventListener("mouseleave", leave)
-    window.onblur = leave
-    // 添加窗口大小监听
-    window.addEventListener('resize', initItems)
-}
-onMounted(() => {
-    init()
+  }
+  return count
 })
+
+function filterText(val: string | number) {
+  emit('change', val)
+}
 </script>
 
-<style lang="less"  scoped>
+<style lang="less" scoped>
 .header {
-    position: relative;
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
 
-    .searchInput {
-        position: absolute;
-        width: 230px;
-        left: 50%;
-        top: 50%;
-        transform: translateY(-50%);
-        margin-left: -110px;
+// ========== Logo ==========
+.header-left {
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+
+  .logo-svg {
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+  }
+}
+
+// ========== 搜索框 ==========
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.searchInput {
+  width: 380px;
+  max-width: 60vw;
+
+  :deep(.el-input__wrapper) {
+    border-radius: 50px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.25s ease;
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
+
+    &.is-focus {
+      background: #fff;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+  }
+
+  :deep(.el-input__inner) {
+    font-size: 14px;
+    color: #334155;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
 }
 
-#header {
-    position: relative;
-    overflow: hidden;
-    margin: 0 auto;
-    min-width: 1000px;
-    min-height: 155px;
-    height: 10vw;
-    max-height: 240px;
+// ========== 统计信息 ==========
+.header-right {
+  display: flex;
+  align-items: center;
+  min-width: 160px;
+  justify-content: flex-end;
 }
 
-/deep/ .layer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    display: flex;
+.board-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+
+  .stat-item {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-}
+    gap: 4px;
 
-img {
-    user-select: none;
-    pointer-events: none;
+    .el-icon {
+      font-size: 15px;
+      color: #94a3b8;
+    }
+  }
+
+  .stat-divider {
+    color: #cbd5e1;
+    font-weight: 400;
+  }
 }
 </style>

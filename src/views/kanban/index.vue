@@ -1,18 +1,25 @@
 <template>
   <div class="baseKanban">
-    <Header @change="store.searchText = $event"></Header>
+    <Header @change="store.searchText = $event" />
     <div class="box_cover">
       <div class="list_todo" v-for="(item, key) in store.columns" :key="key">
         <!-- "+添加列表"按钮 -->
         <div class="todo_top add_btn_top" v-if="'type' in item && item.type === 'add'" @click="addList">
+          <el-icon :size="18"><Plus /></el-icon>
           <div class="title">{{ item.title }}</div>
         </div>
+
         <!-- 列表头部 -->
         <div class="todo_top" v-else>
-          <div class="title">
-            {{ item.title }}（<span v-if="item.children">{{ getTodoCount(item.children) }}</span>）
+          <div class="col-header">
+            <div class="col-title-row">
+              <span class="col-icon">{{ getColumnIcon(key) }}</span>
+              <span class="title">{{ item.title }}</span>
+            </div>
+            <span class="col-count" v-if="'children' in item">{{ getTodoCount(item.children) }}</span>
           </div>
         </div>
+
         <!-- 拖拽区域 -->
         <draggable
           v-if="'children' in item && item.children"
@@ -36,7 +43,8 @@
               <!-- "+添加卡片"按钮 -->
               <div v-if="element.type === 'add'" class="todo_item">
                 <div class="add_text" @click.stop="store.openCreateDialog(key)">
-                  +添加卡片
+                  <el-icon :size="15"><Plus /></el-icon>
+                  <span>添加卡片</span>
                 </div>
               </div>
 
@@ -108,7 +116,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
-import { Edit, Delete, Calendar, User } from '@element-plus/icons-vue'
+import { Edit, Delete, Calendar, User, Plus } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import Header from '../../components/header/Header.vue'
 import mDialog from './m-dialog.vue'
@@ -118,6 +126,13 @@ import type { KanbanCard, KanbanList } from '@/types/kanban'
 
 const store = useKanbanStore()
 let isMove = ref(false)
+
+// ========== 列图标 ==========
+const columnIcons = ['📋', '🚀', '🧪', '📦', '✅', '📝', '🔧', '⭐']
+
+function getColumnIcon(index: number): string {
+  return columnIcons[index % columnIcons.length]
+}
 
 // ========== 搜索过滤 ==========
 function matchesSearch(card: KanbanCard): boolean {
@@ -179,103 +194,82 @@ function clone(val: any) {
 }
 
 function onMove(val: any) {
-  console.log('move', val)
   return true
 }
 
 function start(val: any) {
-  console.log('start', val)
   isMove.value = true
 }
 
 function onEnd(val: any) {
   isMove.value = false
-  console.log('onEnd', val)
   store.reSort()
 }
 
 function pullFunction(val: any) {
-  console.log('pullFunc', val)
   return true
 }
 </script>
 
 <style lang="less" scoped>
+// ========== 看板背景 ==========
 .baseKanban {
-  background: linear-gradient(135deg, #1a3c47 0%, #2d6a7d 30%, #3b99a6 60%, #4db8c7 100%);
+  background: #f0f2f5;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-}
-
-// ========== 搜索框美化 ==========
-::v-deep .searchInput .el-input__wrapper {
-  border-radius: 50px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-
-  &:hover,
-  &.is-focus {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-    background: #fff;
-  }
 }
 
 // ========== 看板容器 ==========
 .box_cover {
   display: flex;
   justify-content: start;
-  padding: 10px 0 10px 24px;
+  padding: 20px 24px;
   overflow-x: auto;
   overflow-y: hidden;
   width: 100%;
-  height: calc(100vh - 70px);
-  gap: 4px;
+  height: calc(100vh - 56px);
+  gap: 14px;
+  box-sizing: border-box;
 
   // 自定义滚动条
   &::-webkit-scrollbar {
-    height: 8px;
+    height: 6px;
   }
   &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    margin: 0 20px;
+    background: transparent;
+    margin: 0 24px;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(0, 0, 0, 0.2);
   }
 
+  // ========== 列容器 ==========
   .list_todo {
-    margin-top: 8px;
+    margin-top: 4px;
     height: 100%;
-    min-width: 280px;
-    max-width: 280px;
+    min-width: 295px;
+    max-width: 295px;
     position: relative;
     padding: 0 12px;
-    border-radius: 16px;
-    padding-top: 16px;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(4px);
-    transition: background 0.25s ease;
+    border-radius: 14px;
+    padding-top: 14px;
+    background: #ebecf0;
+    transition: background 0.2s ease;
     flex-shrink: 0;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.13);
-    }
-
     .list-group {
-      height: calc(100vh - 260px);
-      max-height: calc(100vh - 260px);
+      height: calc(100vh - 180px);
+      max-height: calc(100vh - 180px);
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 2px 4px;
+      padding: 6px 0 8px;
 
+      // 列内滚动条 — 仅 hover 时显示
       &::-webkit-scrollbar {
         width: 4px;
       }
@@ -283,156 +277,207 @@ function pullFunction(val: any) {
         background: transparent;
       }
       &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
+        background: transparent;
         border-radius: 4px;
       }
-      &::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.4);
+      &:hover::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.12);
+      }
+      &:hover::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.25);
       }
     }
   }
 
   // ========== 列标题 ==========
   .todo_top {
-    border-radius: 12px;
-    margin-bottom: 16px;
-    text-align: left;
+    border-radius: 10px;
+    margin-bottom: 12px;
     box-sizing: border-box;
-    color: #fff;
-    padding: 8px 16px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(6px);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+
+    .col-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .col-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .col-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
 
     .title {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: #1e293b;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .col-count {
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 10px;
+      padding: 2px 8px;
+      min-width: 22px;
+      text-align: center;
     }
   }
 
+  // ========== "+添加列表"按钮 ==========
   .add_btn_top {
     justify-content: center;
+    gap: 6px;
     cursor: pointer;
-    opacity: 0.75;
+    opacity: 0.7;
     transition: all 0.25s ease;
-    border: 2px dashed rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.04) !important;
+    border: 2px dashed #cbd5e1;
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: #64748b;
+
+    .title {
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .el-icon {
+      color: #94a3b8;
+    }
 
     &:hover {
       opacity: 1;
-      background: rgba(255, 255, 255, 0.12) !important;
-      border-color: rgba(255, 255, 255, 0.6);
-      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-color: #4f46e5;
+      color: #4f46e5;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.12);
+
+      .title {
+        color: #4f46e5;
+      }
+      .el-icon {
+        color: #4f46e5;
+      }
     }
   }
 
-  // ========== 卡片主体 ==========
+  // ========== 卡片 ==========
+  .todo_item {
+    position: relative;
+  }
+
   .card-item {
     position: relative;
-    background: #fff;
-    padding: 12px 36px 12px 8px;
-    border-radius: 12px;
+    background: #ffffff;
+    padding: 12px 74px 12px 10px;
+    border-radius: 10px;
     margin-bottom: 8px;
-    width: 252px;
-    max-width: 252px;
+    width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     min-height: 32px;
     display: flex;
     flex-direction: row;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    border: 1px solid transparent;
 
     &:hover {
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
       transform: translateY(-2px);
-      border-color: rgba(0, 0, 0, 0.08);
+      border-color: #e2e8f0;
     }
 
     // 优先级色条
     .priority-bar {
       position: absolute;
       left: 0;
-      top: 0;
-      bottom: 0;
-      width: 5px;
-      border-radius: 12px 0 0 12px;
-      background: #e0e0e0;
+      top: 4px;
+      bottom: 4px;
+      width: 4px;
+      border-radius: 4px;
+      background: #e8e8e8;
 
       &.priority-high {
-        background: linear-gradient(180deg, #ff6b6b, #ee5a24);
+        background: linear-gradient(180deg, #ef4444, #dc2626);
       }
       &.priority-medium {
-        background: linear-gradient(180deg, #ffa726, #ff9800);
+        background: linear-gradient(180deg, #f59e0b, #d97706);
       }
       &.priority-low {
-        background: linear-gradient(180deg, #66bb6a, #43a047);
+        background: linear-gradient(180deg, #22c55e, #16a34a);
       }
       &.priority-none {
         background: #e8e8e8;
       }
     }
 
-    // 优先级色条替代 border-left
-    &.priority-high,
-    &.priority-medium,
-    &.priority-low {
-      border-left: none;
-    }
     &.overdue {
-      background: linear-gradient(135deg, #fff5f5, #fff0f0);
-      border-color: #ffcdd2;
+      background: #fef2f2;
+      border-color: #fecaca;
 
       &:hover {
-        border-color: #ef9a9a;
+        border-color: #fca5a5;
+        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.1);
       }
     }
 
     .card-body {
       flex: 1;
       min-width: 0;
-      padding-left: 4px;
+      padding-left: 6px;
     }
 
     .card-title {
       font-weight: 600;
       font-size: 14px;
-      line-height: 1.5;
-      color: #2c3e50;
+      line-height: 1.45;
+      color: #1e293b;
       word-break: break-word;
     }
 
     .card-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 8px;
+      gap: 4px;
+      margin-top: 7px;
 
       .card-tag {
-        font-size: 11px;
-        border-radius: 6px;
-        padding: 0 8px;
-        height: 20px;
-        line-height: 20px;
+        font-size: 10px;
+        border-radius: 4px;
+        padding: 0 7px;
+        height: 18px;
+        line-height: 18px;
         font-weight: 500;
+        letter-spacing: 0.2px;
       }
     }
 
     .card-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px;
       margin-top: 8px;
-      font-size: 12px;
-      color: #a0aec0;
+      font-size: 11px;
+      color: #94a3b8;
 
       .due-date,
       .assignee {
@@ -440,27 +485,28 @@ function pullFunction(val: any) {
         align-items: center;
         gap: 3px;
         padding: 2px 6px;
-        background: #f7fafc;
-        border-radius: 6px;
+        background: #f8fafc;
+        border-radius: 5px;
+        font-weight: 500;
 
         .el-icon {
-          font-size: 13px;
+          font-size: 12px;
         }
       }
       .text-danger {
-        color: #e53e3e;
+        color: #dc2626;
         font-weight: 700;
-        background: #fff5f5;
+        background: #fef2f2;
       }
     }
 
     // Hover 操作按钮
     .card-actions {
       position: absolute;
-      top: 6px;
-      right: 4px;
+      top: 8px;
+      right: 10px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 4px;
       opacity: 0;
       transform: translateX(4px);
@@ -472,7 +518,6 @@ function pullFunction(val: any) {
         width: 28px;
         height: 28px;
         min-width: 28px;
-        pointer-events: auto;
 
         .el-icon {
           font-size: 15px;
@@ -484,37 +529,44 @@ function pullFunction(val: any) {
       transform: translateX(0);
       pointer-events: auto;
     }
-    &:hover .card-actions {
-      opacity: 1;
-      transform: translateX(0);
-    }
   }
 
+  // ========== 可拖拽卡片标记 ==========
   .mover {
     min-height: 49px;
-    cursor: grab;
+    cursor: grab !important;
 
     &:active {
-      cursor: grabbing;
+      cursor: grabbing !important;
     }
-    &:hover {
-      cursor: grab;
-    }
+  }
+}
+
+// ========== 卡片入场动画 ==========
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 // ========== 拖拽样式 ==========
 .chosenClass {
   background: #fff !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18) !important;
   transform: rotate(2deg) scale(1.03) !important;
   z-index: 100;
+  border-radius: 10px !important;
 }
 .ghost {
-  opacity: 0.35;
-  background: #e2e8f0;
-  border: 2px dashed #a0aec0;
-  border-radius: 12px;
+  opacity: 1;
+  background: #e8ecf1 !important;
+  border: 2px dashed #b0bec5;
+  border-radius: 10px;
 
   * {
     visibility: hidden;
@@ -523,37 +575,47 @@ function pullFunction(val: any) {
 .dragClass {
   background: #fff !important;
   opacity: 1 !important;
-  transform: rotate(3.5deg) scale(1.05) !important;
   cursor: grabbing !important;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
   z-index: 200;
-}
+  border-radius: 10px !important;
 
-// ========== "+添加卡片"占位容器 ==========
-.todo_item {
-  position: relative;
-  min-height: 36px;
+  .card-body {
+    transform: rotate(3.5deg) scale(1.05);
+    transform-origin: center center;
+  }
+  .priority-bar {
+    transform: rotate(3.5deg) scale(1.05);
+    transform-origin: left center;
+  }
 }
 
 // ========== "+添加卡片"按钮 ==========
 .add_text {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 8px;
   line-height: 36px;
   text-align: center;
   cursor: pointer;
-  color: #a0aec0;
+  color: #64748b;
   font-size: 13px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: all 0.2s ease;
+  border: 1px dashed transparent;
+  background: transparent;
 
   &:hover {
-    color: #4a5568;
+    color: #1e293b;
     background: rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
   }
 }
 
-// ========== 输入框无边框 ==========
+// ========== 输入框无边框（dialog 中使用） ==========
 ::v-deep .no_border .el-textarea__inner {
   border: none;
   box-shadow: none;
@@ -565,7 +627,7 @@ function pullFunction(val: any) {
 
   &:focus {
     background: #fff;
-    box-shadow: 0 0 0 2px #409eff33;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
   }
 }
 </style>

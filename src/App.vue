@@ -31,4 +31,8 @@ let arr = ref(['ComponentA', 'ComponentB', 'test'])
     </router-view>
   </div>
 </template>
-<style scoped></style>
+<style>
+body {
+  background: #f0f2f5;
+}
+</style>
