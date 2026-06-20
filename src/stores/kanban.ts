@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import type {
   KanbanCard,
@@ -8,6 +8,8 @@ import type {
   Tag,
   KanbanColumn
 } from '@/types/kanban'
+
+const STORAGE_KEY = 'kanban-data'
 
 export const useKanbanStore = defineStore('kanban', () => {
   // ========== 状态 ==========
@@ -49,11 +51,9 @@ export const useKanbanStore = defineStore('kanban', () => {
     ]
     columns.value = defaultLists.map((title) => {
       const list: KanbanList = { title, children: [] }
-      // 每列 10 张示例卡片
       for (let i = 0; i < 10; i++) {
         list.children.push(createDefaultCard(`${title}--${i + 1}`))
       }
-      // 末尾"添加卡片"占位
       list.children.push({
         key: newCardKey(),
         title: '',
@@ -64,9 +64,45 @@ export const useKanbanStore = defineStore('kanban', () => {
       })
       return list
     })
-    // "+添加列表"按钮
     columns.value.push({ title: '+添加列表', type: 'add' })
   }
+
+  // ========== 数据持久化：localStorage 存取 ==========
+  function saveToStorage() {
+    try {
+      const data = {
+        columns: columns.value,
+        nextKey
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch (e) {
+      // 存储满或隐私模式下忽略
+    }
+  }
+
+  function loadFromStorage(): boolean {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return false
+      const data = JSON.parse(raw)
+      if (data.columns && Array.isArray(data.columns)) {
+        columns.value = data.columns
+        nextKey = data.nextKey || 1
+        return true
+      }
+    } catch (e) {
+      // 数据损坏则用默认数据
+    }
+    return false
+  }
+
+  // 初始化：优先从 localStorage 加载
+  if (!loadFromStorage()) {
+    initialize()
+  }
+
+  // 数据变更自动保存
+  watch(columns, () => saveToStorage(), { deep: true })
 
   // ========== 获取器 ==========
   function getListIndex(list: KanbanList): number {
@@ -85,7 +121,6 @@ export const useKanbanStore = defineStore('kanban', () => {
 
   // ========== 卡片操作 ==========
 
-  /** 在指定列中创建新卡片 */
   function createCard(listIndex: number, data: {
     title: string
     description: string
@@ -114,7 +149,6 @@ export const useKanbanStore = defineStore('kanban', () => {
     return card
   }
 
-  /** 更新卡片的部分字段 */
   function updateCard(key: number, updates: Partial<KanbanCard>) {
     const found = findCardByKey(key)
     if (!found) return
@@ -125,7 +159,6 @@ export const useKanbanStore = defineStore('kanban', () => {
     }
   }
 
-  /** 删除卡片 */
   function deleteCard(key: number) {
     const found = findCardByKey(key)
     if (!found) return
@@ -135,7 +168,6 @@ export const useKanbanStore = defineStore('kanban', () => {
 
   // ========== 列表操作 ==========
 
-  /** 创建新列表列 */
   function createList(title: string) {
     const addIdx = columns.value.findIndex((col) => 'type' in col && col.type === 'add')
     const insertIdx = addIdx > -1 ? addIdx : columns.value.length
@@ -153,6 +185,29 @@ export const useKanbanStore = defineStore('kanban', () => {
       ]
     }
     columns.value.splice(insertIdx, 0, newList)
+  }
+
+  /** 重命名列 */
+  function renameList(listIndex: number, newTitle: string) {
+    const col = columns.value[listIndex]
+    if (!col) return
+    if ('title' in col) {
+      col.title = newTitle
+    }
+  }
+
+  /** 清空列内所有卡片 */
+  function clearList(listIndex: number) {
+    const col = columns.value[listIndex]
+    if (!col || !('children' in col)) return
+    const list = col as KanbanList
+    const addItem = list.children.find((item) => item.type === 'add')
+    list.children = addItem ? [addItem] : []
+  }
+
+  /** 删除整列 */
+  function deleteList(listIndex: number) {
+    columns.value.splice(listIndex, 1)
   }
 
   // ========== 弹窗操作 ==========
@@ -176,7 +231,6 @@ export const useKanbanStore = defineStore('kanban', () => {
   }
 
   // ========== 拖拽后重排 ==========
-  /** 确保每列末尾最后一项是 type='add' 的占位项 */
   function reSort() {
     columns.value.forEach((col) => {
       if (!('children' in col)) return
@@ -187,9 +241,6 @@ export const useKanbanStore = defineStore('kanban', () => {
       }
     })
   }
-
-  // 初始化
-  initialize()
 
   return {
     columns,
@@ -202,6 +253,9 @@ export const useKanbanStore = defineStore('kanban', () => {
     updateCard,
     deleteCard,
     createList,
+    renameList,
+    clearList,
+    deleteList,
     openCreateDialog,
     openEditDialog,
     closeEditDialog,

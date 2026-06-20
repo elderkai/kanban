@@ -60,14 +60,13 @@
         <div class="tag-input-row">
           <el-input
             v-model="newTagName"
-            placeholder="新标签名称"
+            placeholder="输入标签名后回车或点空白处保存"
             size="small"
             style="flex: 1"
             @keyup.enter="addTag"
             @blur="addTag"
           />
           <el-color-picker v-model="newTagColor" size="small" />
-          <el-button :icon="Plus" size="small" type="primary" circle @click="addTag" />
         </div>
       </el-form-item>
 
@@ -112,7 +111,7 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete } from '@element-plus/icons-vue'
 import { useKanbanStore } from '@/stores/kanban'
 import type { Priority, Tag } from '@/types/kanban'
 
@@ -301,6 +300,8 @@ function confirmDelete() {
 // ========== 优先级按钮组 ==========
 .priority-radio-group {
   width: 100%;
+  display: flex;
+  gap: 10px;
 
   :deep(.el-radio-button) {
     flex: 1;
@@ -318,11 +319,30 @@ function confirmDelete() {
     transition: all 0.2s;
   }
 
-  :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-    border-color: #4f46e5;
-    background: #eef2ff;
-    color: #4338ca;
-    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2);
+  // 选中状态：按优先级着色
+  :deep(.el-radio-button__original-radio[value="high"]:checked + .el-radio-button__inner) {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #dc2626;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.25);
+  }
+  :deep(.el-radio-button__original-radio[value="medium"]:checked + .el-radio-button__inner) {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #d97706;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.25);
+  }
+  :deep(.el-radio-button__original-radio[value="low"]:checked + .el-radio-button__inner) {
+    border-color: #22c55e;
+    background: #f0fdf4;
+    color: #16a34a;
+    box-shadow: 0 1px 3px rgba(34, 197, 94, 0.25);
+  }
+  :deep(.el-radio-button__original-radio[value="none"]:checked + .el-radio-button__inner) {
+    border-color: #94a3b8;
+    background: #f8fafc;
+    color: #64748b;
+    box-shadow: 0 1px 3px rgba(148, 163, 184, 0.2);
   }
 }
 

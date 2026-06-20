@@ -34,18 +34,35 @@
           {{ cardCount }} 卡片
         </span>
       </div>
+      <button class="theme-toggle" @click="toggleTheme" :title="isDark ? '切换亮色' : '切换暗色'">
+        <el-icon :size="18"><Moon v-if="!isDark" /><Sunny v-else /></el-icon>
+      </button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { Search, Grid, Document } from '@element-plus/icons-vue'
+import { Search, Grid, Document, Moon, Sunny } from '@element-plus/icons-vue'
 import { useKanbanStore } from '@/stores/kanban'
 
 const store = useKanbanStore()
 const searchText = ref('')
 const emit = defineEmits(['change'])
+
+// 暗色模式切换
+const isDark = ref(false)
+function toggleTheme() {
+  isDark.value = !isDark.value
+  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : '')
+  localStorage.setItem('kanban-theme', isDark.value ? 'dark' : 'light')
+}
+// 初始化时读取
+const saved = localStorage.getItem('kanban-theme')
+if (saved === 'dark') {
+  isDark.value = true
+  document.documentElement.setAttribute('data-theme', 'dark')
+}
 
 const columnCount = computed(() =>
   store.columns.filter((col) => !('type' in col) || col.type !== 'add').length
@@ -181,5 +198,13 @@ function filterText(val: string | number) {
     color: #cbd5e1;
     font-weight: 400;
   }
+}
+
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border: none; border-radius: 8px;
+  background: transparent; color: #94a3b8; cursor: pointer;
+  transition: all 0.2s; margin-left: 8px;
+  &:hover { background: #f1f5f9; color: var(--col-accent, #4f46e5); }
 }
 </style>
